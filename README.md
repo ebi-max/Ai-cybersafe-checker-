@@ -1,50 +1,50 @@
-# -------- APP MAIN FUNCTION --------
-if auth_status:
-    authenticator.logout("Logout", "sidebar")
-    st.sidebar.success(f"Welcome {name} 👋")
+# 🛡️ AI CyberSafe Checker
 
-    # ---------- SCAN LIMIT ENFORCEMENT ----------
-    def get_user_row(username):
-        df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
-        for i, row in df.iterrows():
-            if row['username'] == username:
-                return df, i, row
-        return df, None, None
+**AI CyberSafe Checker** is a powerful tool that helps individuals detect phishing, scam, and suspicious messages using Artificial Intelligence.
 
-    def update_user_scan(username):
-        df, row_index, row = get_user_row(username)
-        today = datetime.today().strftime('%Y-%m-%d')
+This project was built as part of the **3MTT Knowledge Showcase** under the AI-Powered Solutions category.
 
-        if row is not None:
-            if str(row['last_scan_date']) != today:
-                df.at[row_index, 'scan_count'] = 0  # reset count
-                df.at[row_index, 'last_scan_date'] = today
+## 🚀 Features
 
-            count = int(df.at[row_index, 'scan_count'])
-            if count >= 5:
-                return False  # limit reached
+- 🔐 User Sign-Up & Login system
+- 📩 Paste suspicious messages to check
+- 🤖 Uses AI model from HuggingFace for scam detection
+- 📊 Tracks user scan limits daily
+- ☁️ Data stored securely using Google Sheets
+- 💰 Coming soon: Payment gateway for premium access
 
-            df.at[row_index, 'scan_count'] = count + 1
-            df.at[row_index, 'last_scan_date'] = today
-            df.to_csv("users_temp.csv", index=False)
-            return True
-        return False
+## 🧠 How It Works
 
-    st.write("Paste any suspicious message below to detect scams.")
-    message = st.text_area("✉️ Message to Analyze:")
+1. Create a free account (Sign Up)
+2. Log in with your username and password
+3. Paste any suspicious message
+4. The AI will analyze and show whether it's a **SCAM** or **SAFE**
+5. You can scan up to **5 free messages daily**
 
-    if message and st.button("🔍 Scan"):
-        if update_user_scan(username):
-            with st.spinner("Analyzing..."):
-                response = requests.post(API_URL, headers=headers, json={"inputs": message})
-                result = response.json()[0]
-                label = result['label']
-                score = round(result['score'] * 100, 2)
+## 💸 Monetization Plan
 
-                if label.lower() == "phishing":
-                    st.error(f"🚨 SCAM DETECTED ({score}%)")
-                else:
-                    st.success(f"✅ SAFE ({score}%)")
-        else:
-            st.warning("❌ You've reached your free scan limit for today.")
-            st.info("💳 Upgrade to get unlimited access.")
+Free users can scan 5 messages per day. To unlock unlimited scans, users will soon be able to **upgrade via Paystack or Flutterwave**.
+
+## 📊 Tech Stack
+
+- 🐍 Python
+- 🎈 Streamlit
+- 🤗 HuggingFace Transformers
+- 📄 Google Sheets (via gspread)
+- 🔐 streamlit_authenticator
+
+## 📱 Live App
+
+👉 [Click to Use the App](https://ai-cybersafe-checker.streamlit.app/)
+
+## 🔗 Connect With the Creator
+
+- **👤 Name**: Ebieme Bassey
+- 💼 [LinkedIn Profile](https://www.linkedin.com/in/ebieme-bassey-9857272a3/)
+- 🌍 From Oron, Akwa Ibom, Nigeria 🇳🇬
+
+## 📥 Contribute or Support
+
+If you like this project, give it a ⭐ or consider donating to support its development.
+
+---
