@@ -1,4 +1,48 @@
-# 🛡️ AI CyberSafe Checker
+## 🛡️ AI CyberSafe Checker
+
+AI CyberSafe Checker is a smart web app that helps you detect phishing or scam messages using advanced AI.
+
+Built with:
+- 🧠 Natural Language Processing (NLP)
+- 🔍 HuggingFace Transformers
+- 📊 Google Sheets for user login and tracking
+- 🌐 Streamlit for frontend UI
+
+## 🔐 Features
+
+- **Sign Up / Login** system (with Google Sheets)
+- **Free users** get 3 scam checks per day
+- **Premium users** enjoy unlimited daily scans
+- **Real-time scam detection** using an AI model
+- **Manual payment option** for easy upgrade
+
+## 💳 Upgrade to Premium
+
+To unlock unlimited scam message checks:
+
+**Pay ₦500** to:
+
+- **Bank:** Fidelity Bank  
+- **Account Name:** Ebieme Bassey  
+- **Account Number:** 6681569396  
+
+After payment, send proof to WhatsApp:  
+👉 [https://wa.me/2347031204549](https://wa.me/2349021784274
+
+_Your account will be upgraded manually._
+
+## 🚀 Try the App Live
+
+👉 [https://ai-cybersafe-checker.streamlit.app](https://ai-cybersafe-checker.streamlit.app)
+
+## 👨‍💻 Developer
+
+**Ebieme Bassey**  
+Founder, EBIKLEAN INTEGRATED SERVICES  
+Self-taught Digital Builder | Cybersecurity Enthusiast  
+[LinkedIn](https://www.linkedin.com/in/ebieme-bassey-9857272a3)
+
+--- AI CyberSafe Checker
 
 **AI CyberSafe Checker** is a powerful tool that helps individuals detect phishing, scam, and suspicious messages using Artificial Intelligence.
 
