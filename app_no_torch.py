@@ -71,18 +71,19 @@ else:
     elif auth_status == None:
         st.warning("Enter your login info.")
     elif auth_status:
-        authenticator.logout("Logout", "sidebar")
-        st.sidebar.success(f"Welcome {name} 👋")
+elif auth_status:
+    authenticator.logout("Logout", "sidebar")
+    
+    st.success(f"🎉 Welcome, {name} 👋 You're now logged in to AI CyberSafe Checker.")
+    if users[username]["access"] == "premium":
+        st.info("✅ Premium access: You can run unlimited scam message checks every day.")
+    else:
+        today = datetime.now().strftime("%Y-%m-%d")
+        scan_count = int(users[username]["scan_count"]) if users[username]["last_scan_date"] == today else 0
+        remaining = 3 - scan_count
+        st.info(f"💡 Free access: You can scan {remaining} more messages today. Upgrade for unlimited access!")
 
-        user_info = get_user_info(username)
-        access_level = user_info.get("access_level", "free")
-        scan_date = str(datetime.now().date())
-        scan_count = int(user_info.get("scan_count", 0))
-        last_date = str(user_info.get("last_scan_date", ""))
-
-        st.markdown("### ✉️ Paste any suspicious message below:")
-
-        message = st.text_area("Enter message to scan")
+    st.markdown("### Paste the suspicious message below:")
 
         # Free users: Max 5 scans per day
         can_scan = True
