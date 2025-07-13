@@ -2,74 +2,41 @@ import streamlit as st
 import requests
 import streamlit_authenticator as stauth
 import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # ---------------- CONFIG ----------------
+
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1ig9XBMyz1IXwxO8qznlQJ6Wv4u21x7hkVXN0abZbBjo/edit#gid=0"
-API_URL   = "https://api-inference.huggingface.co/models/mrm8488/bert-tiny-finetuned-phishing"
-headers   = {}          # add your HF token here later if rate-limited
-FREE_LIMIT = 5          # free scans per user per day
+SCOPE = ["https://www.googleapis.com/auth/spreadsheets"]
+API_URL = "https://api-inference.huggingface.co/models/mrm8488/bert-tiny-finetuned-phishing"
+headers = {}
 
-# ---------- GOOGLE-SHEET HELPERS ----------
+# ---------------- FUNCTIONS ----------------
+
 @st.cache_data
-def get_sheet_df() -> pd.DataFrame:
-    csv_url = SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid=")
-    return pd.read_csv(csv_url)
-
-def save_df(df: pd.DataFrame):
-    df.to_csv("users_temp.csv", index=False)                 # tmp file Streamlit can write
-    # In Community Cloud this automatically overwrites the Sheet after a few seconds.
-
-def get_user_row(username):
-    df = get_sheet_df()
-    for idx, row in df.iterrows():
-        if row["username"] == username:
-            return df, idx, row
-    return df, None, None
-
-def update_scan_count(username) -> bool:
-    """Return True if user may scan, False if limit reached."""
-    df, idx, row = get_user_row(username)
-    today = datetime.today().strftime("%Y-%m-%d")
-
-    if row is None:
-        return False                                           # should not happen
-
-    # reset daily count
-    if str(row["last_scan_date"]) != today:
-        df.at[idx, "scan_count"]     = 0
-        df.at[idx, "last_scan_date"] = today
-
-    count = int(df.at[idx, "scan_count"])
-    if count >= FREE_LIMIT:
-        save_df(df)
-        return False                                           # limit reached
-
-    # increment and save
-    df.at[idx, "scan_count"] = count + 1
-    df.at[idx, "last_scan_date"] = today
-    save_df(df)
-    return True
-
-# ------------- AUTH -------------
-@st.cache_data
-def load_credentials():
-    df = get_sheet_df()
-    creds = {
-        row['username']: {"name": row['name'], "password": row['password']}
+def load_users():
+    df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
+    users = {
+        row['username']: {
+            'name': row['name'],
+            'password': row['password'],
+            'access_level': row.get('access_level', 'free'),
+            'scan_count': row.get('scan_count', 0),
+            'last_scan_date': row.get('last_scan_date', '')
+        }
         for _, row in df.iterrows()
     }
-    return creds
+    return users
 
-def add_user(username, name, password_plain):
-    df = get_sheet_df()
-    hashed = stauth.Hasher([password_plain]).generate()[0]
-    new_row = pd.DataFrame([[username, hashed, name, 0, datetime.today().strftime("%Y-%m-%d")]],
-                           columns=["username","password","name","scan_count","last_scan_date"])
-    df = pd.concat([df, new_row], ignore_index=True)
-    save_df(df)
+def get_user_info(username):
+    df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
+    row = df[df['username'] == username].iloc[0]
+    return row.to_dict()
 
-# ------------- UI -------------
+# ---------------- UI ----------------
+
 st.set_page_config(page_title="AI CyberSafe Checker", layout="centered")
 st.title("🛡️ AI CyberSafe Checker")
 
@@ -77,63 +44,93 @@ menu = st.sidebar.radio("Choose Action", ["Login", "Sign Up"])
 
 if menu == "Sign Up":
     st.subheader("🔐 Create a New Account")
-    full_name = st.text_input("Full Name")
-    new_user  = st.text_input("Username")
-    new_pass  = st.text_input("Password", type="password")
+    new_name = st.text_input("Your Full Name")
+    new_user = st.text_input("Choose a Username")
+    new_pass = st.text_input("Choose a Password", type="password")
+
     if st.button("Create Account"):
-        if full_name and new_user and new_pass:
-            add_user(new_user, full_name, new_pass)
-            st.success("Account created! Please go to **Login**.")
+        if new_user and new_pass and new_name:
+            hashed_pass = stauth.Hasher([new_pass]).generate()[0]
+            new_row = pd.DataFrame([[new_user, hashed_pass, new_name, 'free', 0, datetime.now().date()]], columns=["username", "password", "name", "access_level", "scan_count", "last_scan_date"])
+            df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
+            df = pd.concat([df, new_row], ignore_index=True)
+            df.to_csv("users_temp.csv", index=False)
+            st.success("Account created! Now you can log in.")
         else:
-            st.warning("Fill all fields.")
+            st.warning("Please fill all fields.")
 
 else:
-    creds = load_credentials()
-    auth = stauth.Authenticate(creds, "cybersafe_cookie", "auth", cookie_expiry_days=1)
-    name, auth_stat, username = auth.login("Login", "main")
+    st.subheader("🔓 Login to Continue")
 
-    if auth_stat == False:
+    users = load_users()
+    authenticator = stauth.Authenticate(users, "cybersafe", "auth", cookie_expiry_days=1)
+    name, auth_status, username = authenticator.login("Login", "main")
+
+    if auth_status == False:
         st.error("Invalid credentials.")
-    elif auth_stat == None:
-        st.warning("Enter your login details.")
-    else:
-        auth.logout("Logout", "sidebar")
+    elif auth_status == None:
+        st.warning("Enter your login info.")
+    elif auth_status:
+        authenticator.logout("Logout", "sidebar")
         st.sidebar.success(f"Welcome {name} 👋")
 
-        st.markdown("Paste any suspicious message below to check if it's a scam.")
-        msg = st.text_area("✉️ Message to analyze")
+        user_info = get_user_info(username)
+        access_level = user_info.get("access_level", "free")
+        scan_date = str(datetime.now().date())
+        scan_count = int(user_info.get("scan_count", 0))
+        last_date = str(user_info.get("last_scan_date", ""))
 
-        if msg and st.button("🔍 Scan"):
-            if update_scan_count(username):
-                with st.spinner("Analyzing…"):
-                    res = requests.post(API_URL, headers=headers, json={"inputs": msg}).json()[0]
-                label, score = res["label"], round(res["score"]*100,2)
-                if label.lower()=="phishing":
-                    st.error(f"🚨 SCAM DETECTED ({score} %)")
-                else:
-                    st.success(f"✅ SAFE ({score} %)")
+        st.markdown("### ✉️ Paste any suspicious message below:")
+
+        message = st.text_area("Enter message to scan")
+
+        # Free users: Max 5 scans per day
+        can_scan = True
+        if access_level != "premium":
+            if last_date == scan_date:
+                if scan_count >= 5:
+                    can_scan = False
             else:
-                st.warning("❌ You’ve reached today’s free-scan limit.")
-                st.info("💳 Upgrade coming soon for unlimited scans."import streamlit as st
-import requests
+                scan_count = 0
 
-API_URL = "https://api-inference.huggingface.co/models/mrm8488/bert-tiny-finetuned-phishing"
-headers = {}  # Optional: add your HuggingFace token here if rate-limited
+        if message:
+            if can_scan or access_level == "premium":
+                with st.spinner("Analyzing with AI..."):
+                    response = requests.post(API_URL, headers=headers, json={"inputs": message})
+                    result = response.json()[0]
+                    label = result['label']
+                    score = round(result['score'] * 100, 2)
 
-def query(payload):
-    response = requests.post(API_URL, headers=headers, json={"inputs": payload})
-    return response.json()[0]
+                    if label.lower() == "phishing":
+                        st.error(f"🚨 SCAM DETECTED ({score}%)")
+                    else:
+                        st.success(f"✅ SAFE ({score}%)")
 
-st.set_page_config(page_title="AI CyberSafe Checker", layout="centered")
-st.title("🛡️ AI CyberSafe Checker (Cloud Version)")
+                # update scan count
+                df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
+                df.loc[df['username'] == username, 'scan_count'] = scan_count + 1
+                df.loc[df['username'] == username, 'last_scan_date'] = scan_date
+                df.to_csv("users_temp.csv", index=False)
+            else:
+                st.warning("Daily scan limit reached. Upgrade to unlock full access.")
 
-message = st.text_area("✉️ Paste the message to analyze:")
-if message:
-    with st.spinner("Analyzing..."):
-        result = query(message)
-        label = result.get("label", "")
-        score = round(result.get("score", 0) * 100, 2)
-        if label.lower() == "phishing":
-            st.error(f"🚨 This looks like a SCAM ({score}%)")
-        else:
-            st.success(f"✅ Looks safe ({score}%)")
+        # Payment Instructions for Upgrade
+        if access_level != "premium":
+            st.markdown("""
+                ---
+                ### 🔓 Want Unlimited Access?
+                Free users are limited to 5 scam scans daily.
+
+                To unlock unlimited usage:
+
+                📌 **Pay ₦500** to:
+
+                - **Name:** Ebieme Bassey  
+                - **Bank:** Fidelity Bank  
+                - **Account Number:** 6681569396
+
+                After payment, send proof via WhatsApp:
+                👉 [Click to chat](https://wa.me/2347031204549
+
+                You'll be upgraded manually within 5 minutes after confirmation.
+            """)
