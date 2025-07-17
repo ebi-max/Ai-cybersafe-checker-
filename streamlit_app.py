@@ -71,7 +71,7 @@ else:
     else auth_status == None:
         st.warning("Enter your login info.")
     else auth_status:
-elif auth_status:
+else auth_status:
     authenticator.logout("Logout", "sidebar")
 
     st.success(f"🎉 Welcome, {name} 👋 You're now logged in to AI CyberSafe Checker.")
