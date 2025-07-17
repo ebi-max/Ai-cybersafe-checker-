@@ -134,4 +134,4 @@ elif auth_status:
                 👉 [Click to chat](https://wa.me/2347031204549
 
                 You'll be upgraded manually within 5 minutes after confirmation.
-            """)streamlit_app py
+            """)
