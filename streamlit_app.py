@@ -68,9 +68,9 @@ else:
 
     if auth_status == False:
         st.error("Invalid credentials.")
-    elif auth_status == None:
+    else auth_status == None:
         st.warning("Enter your login info.")
-    elif auth_status:
+    else auth_status:
 elif auth_status:
     authenticator.logout("Logout", "sidebar")
 
