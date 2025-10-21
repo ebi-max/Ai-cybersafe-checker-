@@ -94,7 +94,7 @@ streamlit run streamlit_app.py
 
 🌐 LIVE LINKS 
 
-GitHub Repo: https://github.com/ebi-max/Ai-Cybersafe-checker
+GitHub Repo: https://github.com/ebi-max/Ai-Cybersafe-checker-
 
 Streamlit Demo: https://ai-cybersafe-checker.streamlit.app (under optimization)
 
