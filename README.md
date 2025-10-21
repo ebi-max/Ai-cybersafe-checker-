@@ -74,7 +74,7 @@ Database (for user access): Google Sheets API
 1. Clone the repository:
 
 git clone https://github.com/ebi-max/Ai-Cybersafe-checker.git
-cd Ai-Cybersafe-checker
+cd Ai-Cybersafe-checker-
 
 
 2. Install dependencies:
