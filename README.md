@@ -1,127 +1,96 @@
+<p align="center">
+  <img src="https://github.com/ebieme-bassey/ebi-max/blob/main/banner.png" alt="AI CyberSafe Checker Banner" width="100%">
+</p>
 
-🧠 AI CyberSafe Checker
+# 🧠 AI CyberSafe Checker  
+**Developed by:** Ebieme Bassey  
+**Organization:** EBIKLEAN Integrated Services  
+**Location:** Yenagoa, Bayelsa State, Nigeria  
 
-Building Digital Resilience Through Cybersecurity Awareness
+---
 
-Hackathon: Resilience through Innovation 2025
-Challenge Area: 🧩 Technology for Resilience
-Developer: Ebieme Bassey
-Organization: DeepTech_Ready Upskilling Program (3MTT) Fellow
+## 🔍 Overview  
+**AI CyberSafe Checker** is an intelligent cybersecurity tool designed to analyze and detect **phishing, scam, or fraudulent messages** using advanced Natural Language Processing (NLP).  
+Built with **HuggingFace Transformers**, the app helps users identify risky content before clicking or replying.  
 
+This project is part of the **3MTT Knowledge Showcase** under the **AI-Powered Solutions** category.  
 
+---
 
+## ⚙️ Key Features  
+- 🚫 Detects **phishing or scam text messages** in real-time  
+- 🤖 Uses **Transformer-based NLP models** for text classification  
+- 📊 Provides **detailed safety analysis** (Safe / Suspicious / Dangerous)  
+- 🔐 Includes **user access level verification** via Google Sheet  
+- 📱 Optimized for web and Android app deployment  
 
-🚀 OVERVIEW 
+---
 
-The AI CyberSafe Checker is an AI-powered phishing and scam detection tool designed to help users identify fraudulent messages, emails, and websites before they fall victim to cyberattacks.
+## 💾 Tech Stack  
+- **Frontend:** Streamlit / React Native  
+- **Backend:** Python (Transformers, Pandas)  
+- **Database:** Google Sheets (for login & premium users)  
+- **Hosting:** GitHub / Streamlit Cloud  
+- **Developer Tools:** GitHub Codespaces, Termux  
 
-It uses Natural Language Processing (NLP) and Transformer-based models to analyze text content in real time and determine whether it is safe or malicious, helping individuals and small businesses build digital resilience in today’s cyber-threat landscape.
+---
 
+## 🔑 User Access Levels  
 
-🎯 PROBLEM STATEMENT 
+| Access Type | Description | Daily Scan Limit |
+|--------------|-------------|------------------|
+| **Free User** | Limited access for testing the tool | 3 scans per day |
+| **Premium User** | Unlimited scans + advanced analysis | Unlimited |
 
-Millions of Nigerians and global internet users lose data and money every year to phishing, fake investment schemes, and online scams.
-Most victims lack digital literacy or access to reliable detection tools.
+---
 
-THE CHALLENGE:
+## 💰 Premium Access Setup  
 
-> How can we empower everyday users to detect phishing or scam content instantly, using AI-driven insights?
+To upgrade your account to **Premium Access**, follow these steps:
 
+1. **Send ₦2,000** (one-time activation fee) to  
+   **Bank Name:** Fidelity Bank  
+   **Account Name:** *EBIEME BASSEY*  
+   **Account Number:** `6681569396`
 
+2. **After payment**, send your:  
+   - Full Name  
+   - Email (used in app login)  
+   - Proof of payment  
 
-💡 SOLUTION 
+   📩 via **WhatsApp:** [Click to Chat](https://wa.me/2347031204549)
 
-AI CyberSafe Checker provides a simple text analysis interface that allows users to:
-✅ Paste suspicious messages or links
-✅ Get instant AI feedback — “Safe,” “Suspicious,” or “Phishing Attempt”
-✅ View risk level and educational tips on staying safe online
+3. Your premium status will be confirmed in the Google Sheet:  
+   📄 [cybersafe_users (Google Sheet)](https://docs.google.com/spreadsheets/d/1ig9XBMyz1IXwxO8qznlQJ6Wv4u21x7hkVXN0abZbBjo/edit?usp=drivesdk)
 
-This makes it a practical tool for promoting cyber hygiene and resilience in digital communities.
+4. Once verified, your **`access_level`** will be updated to `premium` and your daily scan limit will become **unlimited**.
 
+---
 
+## 🧠 How It Works  
 
-⚙️ TECH STACK 
+1. **User Inputs a Message:**  
+   Paste any suspicious message, email, or SMS text into the input box.
 
-Language: Python
+2. **AI Model Analysis:**  
+   The system uses a fine-tuned **Transformer model** from HuggingFace to analyze the text, detecting linguistic and contextual patterns common in scams and phishing attempts.
 
-Frameworks: Streamlit, Hugging Face Transformers
+3. **Risk Scoring:**  
+   Each message is assigned a probability score for safety and risk.  
+   Based on that score, one of three verdicts is displayed:
 
-Model: distilbert-base-uncased (fine-tuned for phishing detection)
+   | Result | Description | Example |
+   |---------|-------------|----------|
+   | ✅ **Safe** | The message shows no signs of scam or fraud. | "Your package is ready for pickup at our office." |
+   | ⚠️ **Suspicious** | The message contains partial risk indicators or unclear intent. | "Confirm your bank details to receive your reward." |
+   | 🚨 **Dangerous** | The message matches known scam or phishing patterns. | "Click this link to unlock your blocked account now." |
 
-Hosting: GitHub Codespaces (development) and Streamlit Cloud (demo)
+4. **User Action Suggestion:**  
+   Depending on the result, the app will show security advice such as **“Do not click any links”**, **“Report this message”**, or **“Safe to read”**.
 
-Database (for user access): Google Sheets API
+5. **Scan Logging:**  
+   Each scan is recorded in the Google Sheet with the user’s email, scan count, and last scan date to enforce free user limits.
 
+---
 
-
-🧩 FEATURES 
-
-🔍 NLP-based text classification (phishing vs. safe)
-
-🧠 AI model trained on real-world scam datasets
-
-📊 User scan tracking and usage limits
-
-🔐 Premium access for verified users (manual payment via bank transfer)
-
-🌍 Easy web and mobile deployment options
-
-
-
-
-🧑‍💻 HOW TO RUN LOCALLY 
-
-1. Clone the repository:
-
-git clone https://github.com/ebi-max/Ai-Cybersafe-checker.git
-cd Ai-Cybersafe-checker-
-
-
-2. Install dependencies:
-
-pip install -r requirements.txt
-
-
-3. Run the Streamlit app:
-
-streamlit run streamlit_app.py
-
-
-4. Or open directly in GitHub Codespaces and click “Run App”.
-
-
-
-
-🌐 LIVE LINKS 
-
-GitHub Repo: https://github.com/ebi-max/Ai-Cybersafe-checker-
-
-Streamlit Demo: https://ai-cybersafe-checker.streamlit.app (under optimization)
-
-LinkedIn Project Post: View here
-
-
-
-
-🏆 IMPACT & VISION 
-
-This project supports digital resilience by:
-
-Reducing financial and data loss from scams
-
-Empowering low-literacy users with AI assistance
-
-Encouraging safe digital behavior in underserved communities
-
-
-Next steps:
-Integrate voice alerts, browser extension, and offline mobile support for low-data users.
-
-
-
-📫 CONTACT 
-
-Ebieme Bassey
-📍 Yenagoa, Bayelsa State, Nigeria
-📧 ebiemebassey887@gmail.com
-🔗 LinkedIn
+## 📂 File Structure
