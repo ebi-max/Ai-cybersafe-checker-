@@ -1,111 +1,179 @@
 import streamlit as st
+from datetime import datetime
+import json
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------------------------
+# Page Config
+# ---------------------------------
 st.set_page_config(
     page_title="AI CyberSafe Checker",
-    page_icon="🛡️",
+    page_icon="🔐",
     layout="centered"
 )
 
-# ---------------- SESSION STATE ----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+# ---------------------------------
+# Header / Branding
+# ---------------------------------
+st.markdown("""
+<h2 style="text-align:center;">🔐 AI CyberSafe Checker</h2>
+<p style="text-align:center; font-weight:bold;">Powered by Ebiklean Global</p>
+<p style="text-align:center;">AI-powered digital safety & phishing awareness</p>
+<hr>
+""", unsafe_allow_html=True)
 
-if "name" not in st.session_state:
-    st.session_state.name = ""
+# ---------------------------------
+# Session State
+# ---------------------------------
+if "user" not in st.session_state:
+    st.session_state.user = None
 
-# ---------------- LOGIN SCREEN ----------------
-if not st.session_state.logged_in:
-    st.title("🛡️ AI CyberSafe Checker")
-    st.caption("AI-assisted cyber safety awareness & risk insights")
-    st.markdown("**Powered by Ebiklean Global**")
+if "chat" not in st.session_state:
+    st.session_state.chat = []
 
-    name = st.text_input("Enter your name")
-
+# ---------------------------------
+# Login (Safe & Simple)
+# ---------------------------------
+if st.session_state.user is None:
+    name = st.text_input("Enter your name to continue")
     if st.button("Login"):
-        if name.strip() == "":
-            st.warning("Please enter your name to continue.")
-        else:
-            st.session_state.name = name
-            st.session_state.logged_in = True
+        if name.strip():
+            st.session_state.user = name
             st.rerun()
-
-# ---------------- MAIN APP ----------------
-else:
-    st.sidebar.success(f"Logged in as {st.session_state.name}")
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
-    st.title("🛡️ AI CyberSafe Checker")
-    st.markdown("**Powered by Ebiklean Global**")
-
-    st.subheader("Cyber Safety Check")
-
-    weak_password = st.checkbox("I reuse the same password on many sites")
-    unknown_links = st.checkbox("I click links from unknown emails or messages")
-    no_2fa = st.checkbox("I do not use two-factor authentication (2FA)")
-    public_wifi = st.checkbox("I often use public Wi-Fi without VPN")
-
-    if st.button("Check Cyber Safety"):
-        # Convert to numeric
-        weak_n = int(weak_password)
-        link_n = int(unknown_links)
-        twofa_n = int(no_2fa)
-        wifi_n = int(public_wifi)
-
-        # Simple risk calculation
-        risk_score = (weak_n + link_n + twofa_n + wifi_n) / 4
-
-        st.success("Cyber safety analysis complete")
-        st.write(f"### Estimated Cyber Risk Score: **{risk_score * 100:.1f}%**")
-
-        if risk_score >= 0.75:
-            st.error("High cyber risk detected. Immediate action recommended.")
-        elif risk_score >= 0.4:
-            st.warning("Moderate cyber risk detected. Improve your security habits.")
         else:
-            st.success("Low cyber risk detected. Keep up good security practices.")
+            st.warning("Please enter your name")
+    st.stop()
 
-        # ---------------- DOWNLOADABLE REPORT ----------------
-        report = f"""
-🛡️ AI CYBERSAFE CHECKER REPORT
-Powered by Ebiklean Global
+st.success(f"Welcome, {st.session_state.user} 👋")
 
-Name: {st.session_state.name}
+# ---------------------------------
+# Notifications
+# ---------------------------------
+st.info("🔔 Tip: Never share OTPs, passwords, or private keys online.")
 
-Risk Factors:
-- Reused Passwords: {weak_password}
-- Clicking Unknown Links: {unknown_links}
-- No Two-Factor Authentication: {no_2fa}
-- Unsafe Public Wi-Fi Usage: {public_wifi}
+# ---------------------------------
+# Cyber Risk Input
+# ---------------------------------
+st.subheader("🛡 Cyber Safety Check")
 
-Estimated Cyber Risk Score: {risk_score * 100:.1f}%
+email_links = st.selectbox(
+    "Do you click links from unknown emails?",
+    ["Never", "Sometimes", "Often"]
+)
 
-Recommendations:
-- Use strong, unique passwords
-- Enable 2FA on all important accounts
-- Avoid suspicious links
-- Use VPN on public Wi-Fi
+password_reuse = st.selectbox(
+    "Do you reuse passwords across platforms?",
+    ["No", "Yes"]
+)
 
-Disclaimer:
-This tool provides cyber safety awareness only.
-It is NOT a replacement for professional cybersecurity services.
-"""
+two_fa = st.selectbox(
+    "Do you use Two-Factor Authentication (2FA)?",
+    ["Yes", "No"]
+)
 
-        st.download_button(
-            label="📥 Download Cyber Safety Report",
-            data=report,
-            file_name="ai_cybersafe_report.txt",
-            mime="text/plain"
+# ---------------------------------
+# Classification Logic
+# ---------------------------------
+def cyber_risk_classifier(links, reuse, twofa):
+    if links == "Often" or reuse == "Yes" or twofa == "No":
+        return "High Risk", "⚠️ High exposure to phishing or account compromise."
+    elif links == "Sometimes":
+        return "Moderate Risk", "⚠️ Improve cyber hygiene habits."
+    else:
+        return "Low Risk", "✅ Good cyber safety practices."
+
+# ---------------------------------
+# Run Assessment
+# ---------------------------------
+if st.button("Run CyberSafe Check"):
+    risk, advice = cyber_risk_classifier(email_links, password_reuse, two_fa)
+
+    st.subheader("🧠 Cyber Risk Assessment")
+    st.write(f"**Risk Level:** {risk}")
+    st.write(f"**Advice:** {advice}")
+
+    report = {
+        "Name": st.session_state.user,
+        "Clicks Unknown Links": email_links,
+        "Password Reuse": password_reuse,
+        "Uses 2FA": two_fa,
+        "Risk Level": risk,
+        "Advice": advice,
+        "Generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    st.download_button(
+        "📥 Download Cyber Safety Report",
+        json.dumps(report, indent=4),
+        file_name="ai_cybersafe_report.json",
+        mime="application/json"
+    )
+
+# ---------------------------------
+# Awareness Gallery
+# ---------------------------------
+st.markdown("---")
+st.subheader("🖼 Cyber Safety Awareness")
+
+st.image(
+    [
+        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b",
+        "https://images.unsplash.com/photo-1510511459019-5dda7724fd87"
+    ],
+    caption=["Avoid Phishing Attacks", "Protect Your Digital Identity"],
+    use_column_width=True
+)
+
+# ---------------------------------
+# Chat Assistant
+# ---------------------------------
+st.markdown("---")
+st.subheader("💬 Cyber Assistant Chat")
+
+user_msg = st.text_input("Ask a cyber safety question")
+
+if st.button("Send"):
+    if user_msg:
+        st.session_state.chat.append(("You", user_msg))
+        st.session_state.chat.append(
+            ("AI", "I provide general cyber safety guidance. Stay alert online.")
         )
 
-    st.divider()
-    st.subheader("💰 Investor & Impact Overview")
-    st.write(
-        """
-        - Rising demand for cyber safety awareness tools  
-        - Suitable for schools, NGOs, SMEs, and individuals  
-        - Scalable across web and mobile platforms  
-        """
-    )
+for sender, msg in st.session_state.chat:
+    st.write(f"**{sender}:** {msg}")
+
+# ---------------------------------
+# Impact / Investor Dashboard
+# ---------------------------------
+st.markdown("---")
+st.subheader("📊 Impact & Investor Snapshot")
+
+c1, c2, c3 = st.columns(3)
+
+c1.metric("Primary Threat", "Phishing")
+c2.metric("Target Users", "Internet Users")
+c3.metric("Scalability", "Very High")
+
+st.info(
+    "AI CyberSafe Checker improves digital safety awareness and reduces phishing "
+    "and social engineering risks at scale."
+)
+
+# ---------------------------------
+# Link to Other Apps
+# ---------------------------------
+st.markdown("---")
+st.subheader("🌍 Explore Other Tools")
+
+st.markdown(
+    "➡️ **AI Health Checker** – Health awareness & early risk insights"
+)
+
+# ---------------------------------
+# Footer
+# ---------------------------------
+st.markdown("""
+<hr>
+<p style="text-align:center; font-size:12px;">
+© 2026 Ebiklean Global • AI for Social Good
+</p>
+""", unsafe_allow_html=True)
