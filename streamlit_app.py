@@ -1,137 +1,111 @@
 import streamlit as st
-import requests
-import streamlit-authenticator as stauth
-import pandas as pd
-import gspread
-from google.oauth2.service-account import Credentials
-from datetime import datetime
 
-# ---------------- CONFIG ----------------
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="AI CyberSafe Checker",
+    page_icon="🛡️",
+    layout="centered"
+)
 
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1ig9XBMyz1IXwxO8qznlQJ6Wv4u21x7hkVXN0abZbBjo/edit#gid=0"
-SCOPE = ["https://www.googleapis.com/auth/spreadsheets"]
-API_URL = "https://api-inference.huggingface.co/models/mrm8488/bert-tiny-finetuned-phishing"
-headers = {}
+# ---------------- SESSION STATE ----------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-# ---------------- FUNCTIONS ----------------
+if "name" not in st.session_state:
+    st.session_state.name = ""
 
-@st.cache_data
-def load_users():
-    df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
-    users = {
-        row['username']: {
-            'name': row['name'],
-            'password': row['password'],
-            'access_level': row.get('access_level', 'free'),
-            'scan_count': row.get('scan_count', 0),
-            'last_scan_date': row.get('last_scan_date', '')
-        }
-        for _, row in df.iterrows()
-    }
-    return users
+# ---------------- LOGIN SCREEN ----------------
+if not st.session_state.logged_in:
+    st.title("🛡️ AI CyberSafe Checker")
+    st.caption("AI-assisted cyber safety awareness & risk insights")
+    st.markdown("**Powered by Ebiklean Global**")
 
-def get_user_info(username):
-    df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
-    row = df[df['username'] == username].iloc[0]
-    return row.to_dict()
+    name = st.text_input("Enter your name")
 
-# ---------------- UI ----------------
-
-st.set_page_config(page_title="AI CyberSafe Checker", layout="centered")
-st.title("🛡️ AI CyberSafe Checker")
-
-menu = st.sidebar.radio("Choose Action", ["Login", "Sign Up"])
-
-if menu == "Sign Up":
-    st.subheader("🔐 Create a New Account")
-    new_name = st.text_input("Your Full Name")
-    new_user = st.text_input("Choose a Username")
-    new_pass = st.text_input("Choose a Password", type="password")
-
-    if st.button("Create Account"):
-        if new_user and new_pass and new_name:
-            hashed_pass = stauth.Hasher([new_pass]).generate()[0]
-            new_row = pd.DataFrame([[new_user, hashed_pass, new_name, 'free', 0, datetime.now().date()]], columns=["username", "password", "name", "access_level", "scan_count", "last_scan_date"])
-            df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
-            df = pd.concat([df, new_row], ignore_index=True)
-            df.to_csv("users_temp.csv", index=False)
-            st.success("Account created! Now you can log in.")
+    if st.button("Login"):
+        if name.strip() == "":
+            st.warning("Please enter your name to continue.")
         else:
-            st.warning("Please fill all fields.")
+            st.session_state.name = name
+            st.session_state.logged_in = True
+            st.rerun()
 
+# ---------------- MAIN APP ----------------
 else:
-    st.subheader("🔓 Login to Continue")
+    st.sidebar.success(f"Logged in as {st.session_state.name}")
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
 
-    users = load_users()
-    authenticator = stauth.Authenticate(users, "cybersafe", "auth", cookie_expiry_days=1)
-    name, auth_status, username = authenticator.login("Login", "main")
+    st.title("🛡️ AI CyberSafe Checker")
+    st.markdown("**Powered by Ebiklean Global**")
 
-    if auth_status == False:
-        st.error("Invalid credentials.")
-    else auth_status == None:
-        st.warning("Enter your login info.")
-    else auth_status:
-else auth_status:
-    authenticator.logout("Logout", "sidebar")
+    st.subheader("Cyber Safety Check")
 
-    st.success(f"🎉 Welcome, {name} 👋 You're now logged in to AI CyberSafe Checker.")
-    if users[username]["access"] == "premium":
-        st.info("✅ Premium access: You can run unlimited scam message checks every day.")
-    else:
-        today = datetime.now().strftime("%Y-%m-%d")
-        scan_count = int(users[username]["scan_count"]) if users[username]["last_scan_date"] == today else 0
-        remaining = 3 - scan_count
-        st.info(f"💡 Free access: You can scan {remaining} more messages today. Upgrade for unlimited access!")
+    weak_password = st.checkbox("I reuse the same password on many sites")
+    unknown_links = st.checkbox("I click links from unknown emails or messages")
+    no_2fa = st.checkbox("I do not use two-factor authentication (2FA)")
+    public_wifi = st.checkbox("I often use public Wi-Fi without VPN")
 
-    st.markdown("### Paste the suspicious message below:")
+    if st.button("Check Cyber Safety"):
+        # Convert to numeric
+        weak_n = int(weak_password)
+        link_n = int(unknown_links)
+        twofa_n = int(no_2fa)
+        wifi_n = int(public_wifi)
 
-        # Free users: Max 5 scans per day
-        can_scan = True
-        if access_level != "premium":
-            if last_date == scan_date:
-                if scan_count >= 5:
-                    can_scan = False
-            else:
-                scan_count = 0
+        # Simple risk calculation
+        risk_score = (weak_n + link_n + twofa_n + wifi_n) / 4
 
-        if message:
-            if can_scan or access_level == "premium":
-                with st.spinner("Analyzing with AI..."):
-                    response = requests.post(API_URL, headers=headers, json={"inputs": message})
-                    result = response.json()[0]
-                    label = result['label']
-                    score = round(result['score'] * 100, 2)
+        st.success("Cyber safety analysis complete")
+        st.write(f"### Estimated Cyber Risk Score: **{risk_score * 100:.1f}%**")
 
-                    if label.lower() == "phishing":
-                        st.error(f"🚨 SCAM DETECTED ({score}%)")
-                    else:
-                        st.success(f"✅ SAFE ({score}%)")
+        if risk_score >= 0.75:
+            st.error("High cyber risk detected. Immediate action recommended.")
+        elif risk_score >= 0.4:
+            st.warning("Moderate cyber risk detected. Improve your security habits.")
+        else:
+            st.success("Low cyber risk detected. Keep up good security practices.")
 
-                # update scan count
-                df = pd.read_csv(SHEET_URL.replace("/edit#gid=", "/export?format=csv&gid="))
-                df.loc[df['username'] == username, 'scan_count'] = scan_count + 1
-                df.loc[df['username'] == username, 'last_scan_date'] = scan_date
-                df.to_csv("users_temp.csv", index=False)
-            else:
-                st.warning("Daily scan limit reached. Upgrade to unlock full access.")
+        # ---------------- DOWNLOADABLE REPORT ----------------
+        report = f"""
+🛡️ AI CYBERSAFE CHECKER REPORT
+Powered by Ebiklean Global
 
-        # Payment Instructions for Upgrade
-        if access_level != "premium":
-            st.markdown("""
-                ---
-                ### 🔓 Want Unlimited Access?
-                Free users are limited to 5 scam scans daily.
+Name: {st.session_state.name}
 
-                To unlock unlimited usage:
+Risk Factors:
+- Reused Passwords: {weak_password}
+- Clicking Unknown Links: {unknown_links}
+- No Two-Factor Authentication: {no_2fa}
+- Unsafe Public Wi-Fi Usage: {public_wifi}
 
-                📌 **Pay ₦500** to:
+Estimated Cyber Risk Score: {risk_score * 100:.1f}%
 
-                - **Name:** Ebieme Bassey  
-                - **Bank:** Fidelity Bank  
-                - **Account Number:** 6681569396
+Recommendations:
+- Use strong, unique passwords
+- Enable 2FA on all important accounts
+- Avoid suspicious links
+- Use VPN on public Wi-Fi
 
-                After payment, send proof via WhatsApp:
-                👉 [Click to chat](https://wa.me/2347031204549
+Disclaimer:
+This tool provides cyber safety awareness only.
+It is NOT a replacement for professional cybersecurity services.
+"""
 
-                You'll be upgraded manually within 5 minutes after confirmation.
-            """)
+        st.download_button(
+            label="📥 Download Cyber Safety Report",
+            data=report,
+            file_name="ai_cybersafe_report.txt",
+            mime="text/plain"
+        )
+
+    st.divider()
+    st.subheader("💰 Investor & Impact Overview")
+    st.write(
+        """
+        - Rising demand for cyber safety awareness tools  
+        - Suitable for schools, NGOs, SMEs, and individuals  
+        - Scalable across web and mobile platforms  
+        """
+    )
